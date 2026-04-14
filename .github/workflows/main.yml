@@ -24,7 +24,7 @@ jobs:
           pip install alpaca-py python-dotenv
 
       - name: Run trading bot
-        working-directory: ./TradingBot
+        working-directory: ./StockMarket
         env:
           API_KEY: ${{ secrets.API_KEY }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
