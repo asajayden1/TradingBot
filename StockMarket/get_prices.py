@@ -12,12 +12,8 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# Use the FREE IEX feed
-data_client = StockHistoricalDataClient(
-    API_KEY,
-    SECRET_KEY,
-    feed=DataFeed.IEX
-)
+# No feed here — older versions don't support it
+data_client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
 
 def get_prices(symbol, days=200):
     """
@@ -25,16 +21,16 @@ def get_prices(symbol, days=200):
     Returns a list of floats.
     """
 
-    # FIX: Use date-only values to avoid future timestamps and timezone drift
+    # Safe date-only timestamps (no timezone issues)
     end = date.today()
     start = end - timedelta(days=days)
 
     request = StockBarsRequest(
         symbol_or_symbols=symbol,
         timeframe=TimeFrame.Day,
-        start=start.isoformat(),   # date-only, safe
-        end=end.isoformat(),       # date-only, safe
-        feed=DataFeed.IEX          # force free feed
+        start=start.isoformat(),
+        end=end.isoformat(),
+        feed=DataFeed.IEX   # <-- THIS is what forces free data
     )
 
     bars = data_client.get_stock_bars(request)
