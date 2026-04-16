@@ -20,8 +20,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ${{ env.pythonLocation }}/bin/python -m pip install --upgrade pip
-          ${{ env.pythonLocation }}/bin/pip install alpaca-py python-dotenv pytz
+          python -m pip install --upgrade pip
+          pip install alpaca-py python-dotenv pytz
 
       - name: Run trading bot
         working-directory: ./StockMarket
@@ -29,4 +29,4 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           BASE_URL: ${{ secrets.BASE_URL }}
-        run: ${{ env.pythonLocation }}/bin/python trade.py
+        run: python trade.py
