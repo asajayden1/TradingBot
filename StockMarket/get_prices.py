@@ -5,18 +5,18 @@ from datetime import datetime, timedelta
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
-from alpaca.data.enums import DataFeed   # <-- added
+from alpaca.data.enums import DataFeed
 
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# Use the FREE IEX feed instead of SIP
+# Use IEX feed (free)
 data_client = StockHistoricalDataClient(
     API_KEY,
     SECRET_KEY,
-    feed=DataFeed.IEX   # <-- this fixes the 403 error
+    feed=DataFeed.IEX
 )
 
 def get_prices(symbol, days=200):
@@ -32,7 +32,8 @@ def get_prices(symbol, days=200):
         symbol_or_symbols=symbol,
         timeframe=TimeFrame.Day,
         start=start,
-        end=end
+        end=end,
+        feed=DataFeed.IEX   # <-- THIS is the missing piece
     )
 
     bars = data_client.get_stock_bars(request)
