@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.enums import DataFeed
+from alpaca.data.time import Time  # <-- Alpaca-safe timestamp
 
 load_dotenv()
 
@@ -25,8 +26,8 @@ def get_prices(symbol, days=200):
     Returns a list of floats.
     """
 
-    # FIX: Use UTC to avoid future timestamps
-    end = datetime.now(timezone.utc)
+    # FIX: Use Alpaca's safe timestamp to avoid future dates
+    end = Time.now()  
     start = end - timedelta(days=days)
 
     request = StockBarsRequest(
@@ -34,7 +35,7 @@ def get_prices(symbol, days=200):
         timeframe=TimeFrame.Day,
         start=start,
         end=end,
-        feed=DataFeed.IEX  # force free feed
+        feed=DataFeed.IEX
     )
 
     bars = data_client.get_stock_bars(request)
