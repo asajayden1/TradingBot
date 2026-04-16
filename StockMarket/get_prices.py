@@ -5,15 +5,19 @@ from datetime import datetime, timedelta
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
-
+from alpaca.data.enums import DataFeed   # <-- added
 
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-
-data_client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
+# Use the FREE IEX feed instead of SIP
+data_client = StockHistoricalDataClient(
+    API_KEY,
+    SECRET_KEY,
+    feed=DataFeed.IEX   # <-- this fixes the 403 error
+)
 
 def get_prices(symbol, days=200):
     """
@@ -44,7 +48,7 @@ def get_prices(symbol, days=200):
 
 # test
 if __name__ == "__main__":
-    symbol = "AAPL"  # i can change this to other stocks
+    symbol = "AAPL"
     prices = get_prices(symbol)
 
     print("Number of prices:", len(prices))
