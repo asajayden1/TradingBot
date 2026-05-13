@@ -12,60 +12,76 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# Connect to Alpaca
+# Connect to Alpaca paper trading
 client = TradingClient(API_KEY, SECRET_KEY, paper=True)
 
-SYMBOL = "AAPL"   # You can change this to any stock you want
-QTY = 1           # Number of shares to buy/sell
+# Dictionary of companies to trade
+# Each entry: symbol -> { name, qty }
+COMPANIES = {
+    "AAPL": {"name": "Apple",   "qty": 1},
+    "MSFT": {"name": "Microsoft", "qty": 1},
+    "NVDA": {"name": "NVIDIA",  "qty": 1},
+    "TSLA": {"name": "Tesla",   "qty": 1},
+    "AMZN": {"name": "Amazon",  "qty": 1},
+}
 
 
 def get_current_position(symbol):
-    """
-    Returns how many shares of the symbol you currently hold.
-    """
+    """Returns how many shares of the symbol you currently hold."""
     try:
         position = client.get_open_position(symbol)
         return float(position.qty)
     except Exception:
-        return 0  # no position
+        return 0
 
 
 def place_order(side, qty, symbol):
-    """
-    Places a market order (BUY or SELL).
-    """
+    """Places a market order (BUY or SELL) and prints the order ID."""
     order = MarketOrderRequest(
         symbol=symbol,
         qty=qty,
         side=side,
         time_in_force=TimeInForce.DAY
     )
-    client.submit_order(order)
-    print(f"ORDER PLACED: {side} {qty} shares of {symbol}")
+    result = client.submit_order(order)
+    print(f"  ORDER PLACED: {side} {qty} share(s) of {symbol} | Order ID: {result.id}")
 
 
 def run_bot():
-    print(f"Fetching prices for {SYMBOL}...")
-    prices = get_prices(SYMBOL)
+    print("=" * 50)
+    print("TRADING BOT STARTING")
+    print("=" * 50)
 
-    if len(prices) < 50:
-        print("Not enough data to run strategy.")
-        return
+    # Loop through all companies in the dictionary
+    for symbol, info in COMPANIES.items():
+        print(f"\n[{symbol}] {info['name']}")
 
-    shares_held = get_current_position(SYMBOL)
-    print(f"Currently holding {shares_held} shares.")
+        # Fetch price history
+        prices = get_prices(symbol)
+        if len(prices) < 51:
+            print(f"  Not enough data for {symbol}, skipping.")
+            continue
 
-    signal = get_signal(prices, shares_held)
-    print(f"Strategy signal: {signal}")
+        # Check current position
+        shares_held = get_current_position(symbol)
+        print(f"  Shares held: {shares_held}")
 
-    if signal == "BUY":
-        place_order(OrderSide.BUY, QTY, SYMBOL)
+        # Get trading signal
+        signal = get_signal(prices, shares_held)
+        print(f"  Signal: {signal}")
 
-    elif signal == "SELL":
-        place_order(OrderSide.SELL, QTY, SYMBOL)
+        # Execute trade
+        qty = info["qty"]
+        if signal == "BUY":
+            place_order(OrderSide.BUY, qty, symbol)
+        elif signal == "SELL":
+            place_order(OrderSide.SELL, qty, symbol)
+        else:
+            print(f"  No action taken.")
 
-    else:
-        print("No action taken.")
+    print("\n" + "=" * 50)
+    print("TRADING BOT FINISHED")
+    print("=" * 50)
 
 
 if __name__ == "__main__":
