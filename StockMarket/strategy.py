@@ -11,7 +11,7 @@ def moving_average(prices, window):
 def compute_rsi(prices, period=14):
     """
     Computes the Relative Strength Index (RSI).
-    RSI > 70 = overbought (avoid buying)
+    RSI > 65 = getting overbought (avoid buying)
     RSI < 30 = oversold (good buying opportunity)
     """
     if len(prices) < period + 1:
@@ -33,7 +33,7 @@ def compute_rsi(prices, period=14):
     avg_loss = sum(losses) / period
 
     if avg_loss == 0:
-        return 100  # fully overbought
+        return 100
 
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
@@ -54,7 +54,7 @@ def get_price_position(prices):
     current = prices[-1]
 
     if max_price == min_price:
-        return 50.0  # avoid division by zero
+        return 50.0
 
     position = (current - min_price) / (max_price - min_price) * 100
     return round(position, 2)
@@ -64,15 +64,10 @@ def get_signal(prices, shares_held):
     """
     Determines whether to BUY, SELL, or HOLD.
 
-    Strategy:
-    - Uses 10/50-day MA crossover as the primary signal
-    - Uses RSI to filter out overbought/oversold conditions
-    - Uses BST price position to avoid buying near all-time highs
-
     BUY when:
       - 10-day MA crosses above 50-day MA
-      - RSI is below 70 (not overbought)
-      - Current price is not in the top 85% of its historical range
+      - RSI is below 65 (not overbought)
+      - Current price is not in the top 75% of its historical range
       - No shares currently held
 
     SELL when:
@@ -106,8 +101,8 @@ def get_signal(prices, shares_held):
     # BUY logic
     if shares_held == 0:
         ma_crossup = prev_ma10 <= prev_ma50 and ma10 > ma50
-        rsi_ok = rsi is None or rsi < 70
-        price_not_too_high = price_position < 85
+        rsi_ok = rsi is None or rsi < 65
+        price_not_too_high = price_position < 75
         if ma_crossup and rsi_ok and price_not_too_high:
             return "BUY"
 
@@ -116,6 +111,6 @@ def get_signal(prices, shares_held):
 
 # test
 if __name__ == "__main__":
-    example_prices = list(range(1, 101))  # 100 rising prices
+    example_prices = list(range(1, 101))
     signal = get_signal(example_prices, shares_held=0)
     print("Signal:", signal)

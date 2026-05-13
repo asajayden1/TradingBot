@@ -16,13 +16,14 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 client = TradingClient(API_KEY, SECRET_KEY, paper=True)
 
 # Dictionary of companies to trade
-# Each entry: symbol -> { name, qty }
+# Removed TSLA (too volatile), added GOOGL and META (stable growth)
 COMPANIES = {
-    "AAPL": {"name": "Apple",   "qty": 1},
-    "MSFT": {"name": "Microsoft", "qty": 1},
-    "NVDA": {"name": "NVIDIA",  "qty": 1},
-    "TSLA": {"name": "Tesla",   "qty": 1},
-    "AMZN": {"name": "Amazon",  "qty": 1},
+    "AAPL":  {"name": "Apple",     "qty": 1},
+    "MSFT":  {"name": "Microsoft", "qty": 1},
+    "NVDA":  {"name": "NVIDIA",    "qty": 1},
+    "GOOGL": {"name": "Google",    "qty": 1},
+    "META":  {"name": "Meta",      "qty": 1},
+    "AMZN":  {"name": "Amazon",    "qty": 1},
 }
 
 
@@ -52,25 +53,20 @@ def run_bot():
     print("TRADING BOT STARTING")
     print("=" * 50)
 
-    # Loop through all companies in the dictionary
     for symbol, info in COMPANIES.items():
         print(f"\n[{symbol}] {info['name']}")
 
-        # Fetch price history
         prices = get_prices(symbol)
         if len(prices) < 51:
             print(f"  Not enough data for {symbol}, skipping.")
             continue
 
-        # Check current position
         shares_held = get_current_position(symbol)
         print(f"  Shares held: {shares_held}")
 
-        # Get trading signal
         signal = get_signal(prices, shares_held)
         print(f"  Signal: {signal}")
 
-        # Execute trade
         qty = info["qty"]
         if signal == "BUY":
             place_order(OrderSide.BUY, qty, symbol)
