@@ -11,7 +11,7 @@ def moving_average(prices, window):
 def compute_rsi(prices, period=14):
     """
     Computes the Relative Strength Index (RSI).
-    RSI > 65 = getting overbought (avoid buying)
+    RSI > 72 = overbought (avoid buying)
     RSI < 30 = oversold (good buying opportunity)
     """
     if len(prices) < period + 1:
@@ -65,14 +65,14 @@ def get_signal(prices, shares_held):
     Determines whether to BUY, SELL, or HOLD.
 
     BUY when:
-      - 10-day MA crosses above 50-day MA
-      - RSI is below 65 (not overbought)
-      - Current price is not in the top 75% of its historical range
+      - MA10 is above MA50 (uptrend) OR within 2% of crossing above
+      - RSI is below 72 (not overbought)
+      - Current price is not in the top 90% of its historical range
       - No shares currently held
 
     SELL when:
-      - 10-day MA crosses below 50-day MA
-      - OR RSI goes above 75 (very overbought — take profit)
+      - MA10 crosses below MA50
+      - OR RSI goes above 78 (very overbought — take profit)
       - Shares are currently held
     """
     if len(prices) < 51:
@@ -94,16 +94,18 @@ def get_signal(prices, shares_held):
     # SELL logic
     if shares_held > 0:
         ma_crossdown = prev_ma10 >= prev_ma50 and ma10 < ma50
-        rsi_overbought = rsi is not None and rsi > 75
+        rsi_overbought = rsi is not None and rsi > 78
         if ma_crossdown or rsi_overbought:
             return "SELL"
 
-    # BUY logic
+    # BUY logic — loosened to trigger more entries
     if shares_held == 0:
+        # full crossover OR ma10 is within 2% below ma50 (about to cross)
         ma_crossup = prev_ma10 <= prev_ma50 and ma10 > ma50
-        rsi_ok = rsi is None or rsi < 65
-        price_not_too_high = price_position < 75
-        if ma_crossup and rsi_ok and price_not_too_high:
+        ma_near_cross = ma10 >= ma50 * 0.98
+        rsi_ok = rsi is None or rsi < 72
+        price_not_too_high = price_position < 90
+        if (ma_crossup or ma_near_cross) and rsi_ok and price_not_too_high:
             return "BUY"
 
     return "HOLD"
